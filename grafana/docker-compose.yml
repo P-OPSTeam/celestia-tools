@@ -1,0 +1,123 @@
+version: '3.3'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.43.0
+    container_name: prometheus
+    user: ${USERID:-1000}:${USERGP:-1000}
+    command: 
+      - --log.level=warn 
+      - --config.file=/etc/prometheus/prometheus.yml 
+      - --storage.tsdb.path=/prometheus 
+      - --storage.tsdb.retention.time=360d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries 
+      - --web.console.templates=/usr/share/prometheus/consoles
+    ports:
+      - "19090:9090"
+    depends_on:
+      - alertmanager
+    volumes:
+      - ${PROMETHEUS_CONFIG_PATH:-./conf/prometheus/}:/etc/prometheus/:ro
+      - ${XDG_DATA_HOME:-./data}/prometheus:/prometheus
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: alertmanager
+    volumes:
+      - ./conf/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml:ro
+      - ${XDG_DATA_HOME:-./data}/alertmanager:/data
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yaml
+      - --storage.path=/data
+      - --log.level=debug
+    restart: unless-stopped
+    user: ${USERID:-1000}:${USERGP:-1000}
+    ports:
+      - "9093:9093"
+  
+  grafana:
+    image: grafana/grafana:9.4.7
+    user: ${USERID:-1000}:${USERGP:-1000}
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment: 
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    volumes:
+      - ${GRAFANA_CONFIG_PATH:-./conf/grafana/grafana.ini}:/etc/grafana/grafana.ini
+      - ./conf/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./conf/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./conf/grafana/notifiers:/etc/grafana/provisioning/notifiers
+      - ${XDG_DATA_HOME:-./data}/grafana:/var/lib/grafana
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    expose:
+      - 8080
+  
+  node-exporter:
+    image: prom/node-exporter:v1.5.0
+    container_name: node_exporter
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+    expose:
+      - 9100
+
+  process-exporter:
+    image: ncabatoff/process-exporter:0.7.10
+    container_name: process_exporter
+    command:
+      - '--config.path=/config/config.yaml'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/proc:/host/proc:ro'
+      - ./conf/process-exporter.yaml:/config/config.yaml:ro
+    expose:
+      - 9256
+
+  loki:
+    container_name: loki
+    image: grafana/loki:2.7.5
+    ports:
+      - 3100:3100
+    user: ${USERID:-1000}:${USERGP:-1000}
+    volumes:
+      - ./conf/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - ${XDG_DATA_HOME:-./data}/loki:/mnt
+      - ./conf/loki/rules:/etc/loki/rules/fake:ro
+    command: -config.file=/etc/loki/loki.yaml
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:2.7.5
+    volumes:
+      - /var/log:/var/log:ro
+      - ./conf/promtail.yaml:/etc/promtail/promtail.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/promtail.yaml
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector:0.74.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./conf/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - ${OTEL_GRPC_PORT:-4317}:${OTEL_GRPC_PORT:-4317}
+      - ${OTEL_HTTP_PORT:-4317}:${OTEL_HTTP_PORT:-4317}
+      - ${OTEL_PROMETHEUS_EXPORTER:-8889}:${OTEL_PROMETHEUS_EXPORTER:-8889}

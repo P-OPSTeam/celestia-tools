@@ -1,0 +1,20 @@
+groups:
+  - name: celestia-node
+    rules:
+    - alert: celestia_node_is_not_running
+      expr: namedprocess_namegroup_num_procs{groupname="celestia"} < 1
+      for: 2m
+      labels:
+        severity: 'warning'
+      annotations:
+        title: 'celestia node process has stopped running'
+        description: 'celestia node process has stopped running, go and check it'
+
+    - alert: celestia_node_stop_syncing
+      expr: delta(celestia_total_synced_headers[5m]) == 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "celestia node {{ $labels.instance }} is stuck"
+        description: "celestia node {{ $labels.instance }} is stuck"

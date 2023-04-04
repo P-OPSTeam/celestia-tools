@@ -1,0 +1,56 @@
+groups:
+  - name: celestia-appd
+    rules:
+    - alert: NodeStuck
+      expr: delta(tendermint_consensus_height[5m]) == 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "celestia-appd {{ $labels.instance }} is stuck"
+        description: "celestia-appd {{ $labels.instance }} is stuck"
+
+    - alert: lowP2Pconnection
+      expr: tendermint_p2p_peers < 2
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "celestia-appd {{ $labels.instance }} is having less than 2 peers connected for 5min"
+        description: "celestia-appd {{ $labels.instance }} is currently connected to {{ $value }}"
+
+    - alert: FastSyncing
+      expr: tendermint_consensus_fast_syncing == 1
+      for: 1m
+      labels:
+        severity: info
+      annotations:
+        summary: "celestia-appd {{ $labels.instance }} is currently fast syncing for 1m"
+        description: "celestia-appd {{ $labels.instance }} is currently fast syncing for 1m"
+
+    - alert: StateSyncing
+      expr: tendermint_consensus_state_syncing == 1
+      for: 1m
+      labels:
+        severity: info
+      annotations:
+        summary: "celestia-appd {{ $labels.instance }} is currently state syncing for 1m"
+        description: "celestia-appd {{ $labels.instance }} is currently state syncing"
+
+    - alert: UnusualBlocktime
+      expr: 60 / (delta(tendermint_consensus_block_interval_seconds_count[30m])/30) > 24
+      for: 1m
+      labels:
+        severity: info
+      annotations:
+        summary: "celestia-appd {{ $labels.instance }} or network block time is more than 24s"
+        description: "celestia-appd {{ $labels.instance }} or network block time is currently at {{ $value }}"
+
+    - alert: celestia_appd_is_not_running
+      expr: namedprocess_namegroup_num_procs{groupname="celestia-appd"} < 1
+      for: 2m
+      labels:
+        severity: 'warning'
+      annotations:
+        title: 'celestia-appd process has stopped running'
+        description: 'celestia-appd process has stopped running, go and check it'

@@ -1,0 +1,13 @@
+groups:
+  - name: celestia-appd
+    rules:
+      - alert: celestia-appd_Log_ERR_detected
+        expr: count_over_time ({unit="celestia-appd.service"} |~ "ERR.*"[1m]) >= 1
+        for: 0m
+        labels:
+            severity: warning
+            category: logs
+        annotations:
+            title: "celestia-appd logged an ERR"
+            description: "celestia-appd logged an ERR"
+            logurl: "https://pops.one"
