@@ -1,14 +1,14 @@
 groups:
   - name: celestia-node
     rules:
-    - alert: celestia_node_is_not_running
-      expr: namedprocess_namegroup_num_procs{groupname="celestia"} < 1
-      for: 2m
+    - alert: celestia_node_service_not_running
+      expr: node_systemd_unit_state{name=~"celestia-(bridge|light|full).*", state="active"} == 0
+      for: 1m
       labels:
-        severity: 'warning'
+        severity: warning
       annotations:
-        title: 'celestia node process has stopped running'
-        description: 'celestia node process has stopped running, go and check it'
+        summary: "Celestia Node service is not running (instance {{ $labels.instance }})"
+        description: "Celestia Node service is not running\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
     - alert: celestia_node_stop_syncing
       expr: delta(celestia_total_synced_headers[5m]) == 0

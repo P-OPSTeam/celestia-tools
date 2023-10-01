@@ -3,9 +3,8 @@
 ## Description
 This Monitoring stack is made of :
 - grafana for the viewing of the graph
-- node_exporter to monitor your host
+- node_exporter to monitor your host (and the celestia services)
 - prometheus to capture the metrics and make it available for Grafana
-- process-exporter to monitor celestia-appd
 - loki to display logs
 - promtail to send logs to loki
 - alertmanager integrated with pagerduty to receive alert

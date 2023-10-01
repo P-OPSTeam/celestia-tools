@@ -47,10 +47,10 @@ groups:
         description: "celestia-appd {{ $labels.instance }} or network block time is currently at {{ $value }}"
 
     - alert: celestia_appd_is_not_running
-      expr: namedprocess_namegroup_num_procs{groupname="celestia-appd"} < 1
-      for: 2m
+      expr: node_systemd_unit_state{name=~"celestia-appd.*", state="active"} == 0
+      for: 1m
       labels:
-        severity: 'warning'
+        severity: warning
       annotations:
-        title: 'celestia-appd process has stopped running'
-        description: 'celestia-appd process has stopped running, go and check it'
+        summary: "Celestia Appd service is not running (instance {{ $labels.instance }})"
+        description: "Celestia Appd service is not running\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"

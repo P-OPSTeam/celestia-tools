@@ -1,4 +1,0 @@
-process_names:
-  - comm:
-    - celestia-appd
-    - celestia
