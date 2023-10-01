@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   prometheus:
-    image: prom/prometheus:v2.43.0
+    image: prom/prometheus:v2.47.0
     container_name: prometheus
     user: ${USERID:-1000}:${USERGP:-1000}
     command: 
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   alertmanager:
-    image: prom/alertmanager:v0.25.0
+    image: prom/alertmanager:v0.26.0
     container_name: alertmanager
     volumes:
       - ./conf/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml:ro
@@ -37,7 +37,7 @@ services:
       - "9093:9093"
   
   grafana:
-    image: grafana/grafana:9.4.7
+    image: grafana/grafana:10.1.4
     user: ${USERID:-1000}:${USERGP:-1000}
     container_name: grafana
     ports:
@@ -66,7 +66,7 @@ services:
       - 8080
   
   node-exporter:
-    image: prom/node-exporter:v1.5.0
+    image: prom/node-exporter:v1.6.1
     container_name: node_exporter
     restart: unless-stopped
     command:
@@ -80,7 +80,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:2.7.5
+    image: grafana/loki:2.9.1
     ports:
       - 3100:3100
     user: ${USERID:-1000}:${USERGP:-1000}
@@ -92,7 +92,7 @@ services:
 
   promtail:
     container_name: promtail
-    image: grafana/promtail:2.7.5
+    image: grafana/promtail:2.9.1
     volumes:
       - /var/log:/var/log:ro
       - ./conf/promtail.yaml:/etc/promtail/promtail.yaml:ro
@@ -101,7 +101,7 @@ services:
 
   otel-collector:
     container_name: otel-collector
-    image: otel/opentelemetry-collector:0.74.0
+    image: otel/opentelemetry-collector:0.86.0
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./conf/otel-collector-config.yaml:/etc/otel-collector-config.yaml
