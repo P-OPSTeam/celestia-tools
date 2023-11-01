@@ -12,7 +12,7 @@ receivers:
         - targets: ['127.0.0.1:8888']
 exporters:
   otlphttp:
-    endpoint: http://otel.celestia.tools:4318
+    endpoint: https://otel.celestia.observer
   prometheus:
     endpoint: "0.0.0.0:OTEL_PROMETHEUS_EXPORTER"
     namespace: celestia
