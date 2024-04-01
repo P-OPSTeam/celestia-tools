@@ -11,7 +11,7 @@ groups:
         description: "Celestia Node service is not running\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 
     - alert: celestia_node_stop_syncing
-      expr: delta(celestia_total_synced_headers[5m]) == 0
+      expr: delta(celestia_total_synced_headers[5m]) == 0 or delta(celestia_hdr_store_head_height_gauge[5m]) == 0
       for: 1m
       labels:
         severity: warning
