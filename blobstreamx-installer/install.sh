@@ -86,7 +86,7 @@ echo "Update .env file"
 
 cp $HOME/celestia-tools/blobstreamx-installer/.env.tpl $HOME/blobstreamx/.env
 
-sed -i "s|<<PRIVATEKEY>>|${PRIVATEKEY}|g" $HOME/blobstreamx/.env
+sed -i "s|<<PRIVATE_KEY>>|${PRIVATE_KEY}|g" $HOME/blobstreamx/.env
 sed -i "s|<<RPC_URL>>|${RPC_URL}|g" $HOME/blobstreamx/.env
 sed -i "s|<<TENDERMINT_RPC_URL>>|${TENDERMINT_RPC_URL}|g" $HOME/blobstreamx/.env
 sed -i "s|<<CHAINID>>|${CHAINID}|g" $HOME/blobstreamx/.env
