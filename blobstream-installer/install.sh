@@ -2,30 +2,22 @@
 
 # script to install blobstreamX prover/relayer
 
+if [[ -z $1 || -z $2 || -z $3 ]]; then
+    echo "./install.sh VERIFIER_BUILD HEADER_RANGE_EXPLORER_RELEASE_ID NEXT_HEADER_EXPLORER_RELEASE_ID"
+    exit 1
+fi
+
 # ie verifier-build13.tar.gz
 VERIFIER_BUILD=$1
 # ie 33 in https://alpha.succinct.xyz/celestia/blobstreamx/releases/33
 HEADER_RANGE_EXPLORER_RELEASE_ID=$2
 NEXT_HEADER_EXPLORER_RELEASE_ID=$3
 
-source $HOME/blobstreamx-install/.env.local
+source $HOME/celestia-tools/blobstreamx-installer/.env.local
 
 echo "Update apt and make sure required packages are installed"
 sudo apt update
 sudo apt install -y aria2 jq tree git build-essential libssl-dev pkg-config
-
-echo
-echo "clone blobstream project"
-cd $HOME
-git clone https://github.com/succinctlabs/blobstreamx
-cd blobstreamx; mkdir artifacts; cd artifacts;
-
-echo
-echo "Download Verifier : $VERIFIER_BUILD"
-aria2c -s14 -x14 -k100M https://public-circuits.s3.amazonaws.com/$VERIFIER_BUILD
-echo
-echo "Install Verifier : $VERIFIER_BUILD"
-tar xzf $VERIFIER_BUILD
 
 echo
 echo "Get HEADER_RANGE info from succinct explorer https://alpha.succinct.xyz/celestia/blobstreamx/releases/$HEADER_RANGE_EXPLORER_RELEASE_ID"
@@ -46,6 +38,24 @@ echo "- header range release id  : $hr_release_id"
 echo "- header range function id : $hr_most_recent_function_id"
 echo "- next header release id   : $nh_release_id"
 echo "- next header function id  : $nh_most_recent_function_id"
+
+if [[ -z $hr_release_id || -z $hr_most_recent_function_id || -z $nh_release_id || -z $nh_most_recent_function_id ]]; then
+    echo "none of the 4 information above should be empty"
+    exit 1
+fi
+
+echo
+echo "clone blobstream project"
+cd $HOME
+git clone https://github.com/succinctlabs/blobstreamx
+cd blobstreamx; mkdir artifacts; cd artifacts;
+
+echo
+echo "Download Verifier : $VERIFIER_BUILD"
+aria2c -s14 -x14 -k100M https://public-circuits.s3.amazonaws.com/$VERIFIER_BUILD
+echo
+echo "Install Verifier : $VERIFIER_BUILD"
+tar xzf $VERIFIER_BUILD
 
 echo
 echo "Download header range circuits files from $hr_release_id"
@@ -68,13 +78,13 @@ tar xzf ${nh_release_id}.tar.gz
 echo
 echo "Determine next header folder and binary name"
 nh_folder_name=$(find . -maxdepth 1 -type d \( -name "*next*" \))
-nh_binary_name=$(basename $(find "$nh_folder_name" -type f \( -name "*next*" \)) ! -name "._*")
+nh_binary_name=$(basename $(find "$nh_folder_name" -type f \( -name "*next*" \) ! -name "._*"))
 chmod +x ${nh_folder_name}/${nh_binary_name}
 
 echo
 echo "Update .env file"
 
-cp $HOME/blobstreamx-install/.env.tpl $HOME/blobstreamx/.env
+cp $HOME/celestia-tools/blobstreamx-installer/.env.tpl $HOME/blobstreamx/.env
 
 sed -i "s|<<PRIVATEKEY>>|${PRIVATEKEY}|g" $HOME/blobstreamx/.env
 sed -i "s|<<RPC_URL>>|${RPC_URL}|g" $HOME/blobstreamx/.env
